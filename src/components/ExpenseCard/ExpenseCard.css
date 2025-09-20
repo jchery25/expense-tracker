@@ -7,11 +7,18 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
   border-left: 4px solid #4F46E5;
+  position: relative; /* For delete button positioning */
 }
 
 .expense-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Highlighted state */
+.expense-card--highlighted {
+  border-left-color: #f59e0b;
+  background: #fffbeb;
 }
 
 .expense-header {
@@ -48,4 +55,13 @@
   font-size: 18px;
   font-weight: bold;
   color: #059669;
+}
+
+.expense-delete {
+  transition: all 0.2s;
+}
+
+.expense-delete:hover {
+  background: #dc2626 !important;
+  transform: scale(1.1);
 }

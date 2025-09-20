@@ -1,5 +1,5 @@
-/* src/components/ExpenseList/ExpenseList.css */
-.expense-list {
+/* src/components/ExpenseForm/ExpenseForm.css */
+.expense-form {
   background: white;
   border-radius: 8px;
   padding: 24px;
@@ -8,79 +8,145 @@
   border: 1px solid #E5E7EB;
 }
 
-.expense-list h2 {
-  font-size: 24px;
-  font-weight: bold;
-  color: #1F2937;
-  margin: 0 0 24px 0;
-}
-
-.expense-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 16px;
-  background: #F9FAFB;
-  border-radius: 8px;
-  border: 1px solid #E5E7EB;
-}
-
-.expense-summary h2 {
+.expense-form h3 {
   font-size: 20px;
   font-weight: bold;
-  color: #4F46E5;
-  margin: 0;
+  color: #1F2937;
+  margin: 0 0 20px 0;
 }
 
-.expense-summary select {
-  padding: 8px 12px;
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
   font-size: 14px;
   background: white;
   color: #374151;
-  cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 
-.expense-summary select:hover {
+.form-group input:hover,
+.form-group select:hover {
   border-color: #4F46E5;
 }
 
-.expense-summary select:focus {
+.form-group input:focus,
+.form-group select:focus {
   outline: none;
   border-color: #4F46E5;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
-/* Empty state when no expenses */
-.expense-list-empty {
-  text-align: center;
-  padding: 40px 20px;
-  color: #6B7280;
+.form-group input::placeholder {
+  color: #9CA3AF;
 }
 
-.expense-list-empty p {
-  font-size: 16px;
-  margin: 0;
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn {
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+}
+
+.btn-primary {
+  background: #4F46E5;
+  color: white;
+  border-color: #4F46E5;
+}
+
+.btn-primary:hover {
+  background: #4338CA;
+  border-color: #4338CA;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: white;
+  color: #374151;
+  border-color: #D1D5DB;
+}
+
+.btn-secondary:hover {
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn:disabled:hover {
+  transform: none;
+}
+
+/* Form validation styles */
+.form-group.error input,
+.form-group.error select {
+  border-color: #EF4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* UPDATED */
+.error, .form-error {
+  color: #EF4444;
+  font-size: 12px;
+  margin-top: 4px;
 }
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
-  .expense-list {
+  .expense-form {
     padding: 16px;
     margin-bottom: 20px;
   }
   
-  .expense-summary {
+  .form-actions {
     flex-direction: column;
-    gap: 16px;
-    text-align: center;
   }
   
-  .expense-summary select {
+  .btn {
     width: 100%;
-    max-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .expense-form {
+    padding: 12px;
+  }
+  
+  .form-group input,
+  .form-group select {
+    padding: 12px;
+    font-size: 16px; /* Prevent zoom on iOS */
   }
 }

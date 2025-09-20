@@ -1,59 +1,40 @@
-// src/components/ExpenseList/ExpenseList.tsx - Fixed to use props instead of local state
+// src/components/ExpenseList/ExpenseList.tsx
 import React, { useState } from 'react';
 import ExpenseCard from '../ExpenseCard/ExpenseCard';
-import type { ExpenseCardProps } from '../ExpenseCard/ExpenseCard';
+// UPDATED
+import type { ExpenseCardProps, ExpenseCategory } from '../ExpenseCard/ExpenseCard';
 import './ExpenseList.css';
 
-// Type for expense data (reusing interface from ExpenseCard)
+// UPDATED
 type Expense = ExpenseCardProps;
+type FilterOption = 'All' | ExpenseCategory;
 
-/**
- * Props interface for ExpenseList component
- * FIXED: expenses is now required (not optional initialExpenses)
- * @interface ExpenseListProps
- * @property {Expense[]} expenses - Current expense data from parent component (App.tsx)
- */
+// UPDATED
 interface ExpenseListProps {
-  expenses: Expense[];  // FIXED: Required prop, receives current state from App
+  expenses: Expense[];
+  onDeleteExpense?: (id: number) => void;
 }
 
-/**
- * ExpenseList Component - FIXED VERSION
- * 
- * IMPORTANT CHANGE: This component no longer manages expense data in local state.
- * It receives expenses as props from App.tsx and only manages UI state (filtering).
- * 
- * This fixes the "duplicate state" bug where:
- * - App.tsx had expense state (updated by form)
- * - ExpenseList had separate expense state (never updated)
- * 
- * Now there's a SINGLE SOURCE OF TRUTH in App.tsx
- * 
- * @param {ExpenseListProps} props - Component props
- * @returns {JSX.Element} Rendered expense list with filtering controls
- */
-const ExpenseList: React.FC<ExpenseListProps> = ({ expenses }) => {
-  
-  // ONLY manage UI state (filtering) - NOT expense data
-  const [filterCategory, setFilterCategory] = useState<string>('All');
+// UPDATED
+const ExpenseList: React.FC<ExpenseListProps> = ({ 
+  expenses, 
+  onDeleteExpense     
+}) => {
+// UPDATED
+  const [filterCategory, setFilterCategory] = useState<FilterOption>('All');
 
-  // Filter expenses from props (not local state)
   const filteredExpenses = filterCategory === 'All' 
-    ? expenses  // Use expenses from props
+    ? expenses 
     : expenses.filter(expense => expense.category === filterCategory);
 
-  // Calculate total for the currently filtered expenses
   const filteredTotal = filteredExpenses.reduce(
     (sum, expense) => sum + expense.amount,
     0
   );
 
-  /**
-   * Handles category filter change from select dropdown
-   * @param {React.ChangeEvent<HTMLSelectElement>} event - Select change event
-   */
+  // UPDATED
   const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilterCategory(event.target.value);
+    setFilterCategory(event.target.value as FilterOption);
   };
 
   return (
@@ -85,6 +66,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses }) => {
       </div>
 
       <div className="expense-items">
+      
         {filteredExpenses.length === 0 ? (
           <p className="no-expenses">
             No expenses found. Add some expenses to get started!
@@ -94,6 +76,9 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses }) => {
             <ExpenseCard
               key={expense.id}
               {...expense}
+              onDelete={onDeleteExpense}
+              // OPTIONAL:
+              // highlighted={expense.amount > 50} // Highlight expensive items
             />
           ))
         )}
