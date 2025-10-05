@@ -1,54 +1,84 @@
-// src/components/ExpenseList/ExpenseList.tsx
 import React, { useState } from 'react';
 import ExpenseCard from '../ExpenseCard/ExpenseCard';
-// UPDATED
 import type { ExpenseCardProps, ExpenseCategory } from '../ExpenseCard/ExpenseCard';
-import './ExpenseList.css';
 
-// UPDATED
+// Type for expense data (reusing interface from ExpenseCard)
 type Expense = ExpenseCardProps;
 type FilterOption = 'All' | ExpenseCategory;
 
-// UPDATED
+/**
+ * Props interface for ExpenseList component
+ * FIXED: expenses is now required (not optional initialExpenses)
+ * @interface ExpenseListProps
+ * @property {Expense[]} expenses - Current expense data from parent component (App.tsx)
+ */
 interface ExpenseListProps {
-  expenses: Expense[];
+  expenses: Expense[];  
   onDeleteExpense?: (id: number) => void;
 }
 
-// UPDATED
+/**
+ * ExpenseList Component - FIXED VERSION
+ * 
+ * IMPORTANT CHANGE: This component no longer manages expense data in local state.
+ * It receives expenses as props from App.tsx and only manages UI state (filtering).
+ * 
+ * This fixes the "duplicate state" bug where:
+ * - App.tsx had expense state (updated by form)
+ * - ExpenseList had separate expense state (never updated)
+ * 
+ * Now there's a SINGLE SOURCE OF TRUTH in App.tsx
+ * 
+ * @param {ExpenseListProps} props - Component props
+ * @returns {JSX.Element} Rendered expense list with filtering controls
+ */
 const ExpenseList: React.FC<ExpenseListProps> = ({ 
-  expenses, 
-  onDeleteExpense     
-}) => {
-// UPDATED
+    expenses,
+    onDeleteExpense
+  }) => {
+  
+  // ONLY manage UI state (filtering) - NOT expense data
   const [filterCategory, setFilterCategory] = useState<FilterOption>('All');
 
+  // Filter expenses from props (not local state)
   const filteredExpenses = filterCategory === 'All' 
-    ? expenses 
+    ? expenses  // Use expenses from props
     : expenses.filter(expense => expense.category === filterCategory);
 
+  // Calculate total for the currently filtered expenses
   const filteredTotal = filteredExpenses.reduce(
     (sum, expense) => sum + expense.amount,
     0
   );
 
-  // UPDATED
+  /**
+   * Handles category filter change from select dropdown
+   * @param {React.ChangeEvent<HTMLSelectElement>} event - Select change event
+   */
   const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setFilterCategory(event.target.value as FilterOption);
   };
 
   return (
-    <div className="expense-list">
-      <div className="expense-controls">
-        <h2>Your Expenses</h2>
+    <div className="bg-white rounded-lg p-6 mb-8 shadow-sm border border-gray-200">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+        <h2 className="text-xl font-bold text-gray-900">Your Expenses</h2>
         
-        <div className="filter-controls">
-          <label htmlFor="category-filter">Filter by category:</label>
+        <div className="flex items-center gap-3">
+          <label htmlFor="category-filter" className="text-sm font-medium text-gray-700">
+            Filter by category:
+          </label>
           <select 
             id="category-filter"
             value={filterCategory}
             onChange={handleCategoryChange}
-            className="category-select"
+            className="
+              px-3 py-1.5 
+              border border-gray-300 rounded-md
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              text-sm bg-white cursor-pointer
+              transition-colors duration-200
+            "
           >
             <option value="All">All Categories</option>
             <option value="Food">Food</option>
@@ -59,16 +89,18 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
         </div>
       </div>
 
-      <div className="expense-summary">
-        <p>
-          Total: ${filteredTotal.toFixed(2)} ({filteredExpenses.length} expenses)
+      <div className="flex justify-between items-center mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <p className="text-gray-700 font-medium">
+          Total: <span className="text-lg font-bold text-green-600">${filteredTotal.toFixed(2)}</span>
+        </p>
+        <p className="text-sm text-gray-500">
+          ({filteredExpenses.length} expenses)
         </p>
       </div>
 
-      <div className="expense-items">
-      
+      <div className="space-y-3">
         {filteredExpenses.length === 0 ? (
-          <p className="no-expenses">
+          <p className="text-center text-gray-500 py-8">
             No expenses found. Add some expenses to get started!
           </p>
         ) : (
@@ -77,8 +109,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
               key={expense.id}
               {...expense}
               onDelete={onDeleteExpense}
-              // OPTIONAL:
-              // highlighted={expense.amount > 50} // Highlight expensive items
+              highlighted={expense.amount > 50} // Highlight expensive items
             />
           ))
         )}

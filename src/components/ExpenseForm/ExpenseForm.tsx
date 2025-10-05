@@ -1,7 +1,5 @@
-// src/components/ExpenseForm/ExpenseForm.tsx
 import React, { useState } from 'react';
 import type { ExpenseCategory } from '../ExpenseCard/ExpenseCard';
-import './ExpenseForm.css';
 
 interface FormErrors {
   description?: string;
@@ -17,6 +15,11 @@ interface ExpenseFormData {
   date: string;
 }
 
+/**
+ * Form component for creating new expense entries with validation
+ * @param {Object} props - Component props
+ * @param {function} props.onSubmit - Callback function when form is submitted, receives expense data
+ */
 interface ExpenseFormProps {
   onSubmit: (expenseData: {
     description: string;
@@ -27,117 +30,88 @@ interface ExpenseFormProps {
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
+  // Form state using controlled components pattern
   const [formData, setFormData] = useState<ExpenseFormData>({
     description: '',
     amount: '',
     category: 'Food',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0] // Today's date as default
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
 
-// This function validates an expense form and returns whether it's valid
-// along with any validation error messages.
-const validateExpenseForm = (
-  data: ExpenseFormData
-): { isValid: boolean; errors: FormErrors } => {
-  
-  // Create an empty object to hold any validation error messages.
-  const validationErrors: FormErrors = {};
+  const validateExpenseForm = (data: ExpenseFormData): {isValid: boolean; errors: FormErrors} => {
+    const validationErrors: FormErrors = {};
 
-  // 1. Check if the description is missing or just whitespace.
-  if (!data.description.trim()) {
-    validationErrors.description = 'Description is required';
+    if (!data.description.trim()){
+      validationErrors.description = 'Description is required';
+    }
+
+    const amount = parseFloat(data.amount);
+    if (isNaN(amount) || amount <= 0) {
+      validationErrors.amount = 'Amount must be a positive number';
+    }
+
+    if (!data.category) {
+      validationErrors.category = 'Category is required';
+    }
+
+    if (!data.date) {
+      validationErrors.date = 'Date is required';
+    }
+
+    return {
+      isValid: Object.keys(validationErrors).length === 0,
+      errors: validationErrors
+    };
   }
 
-  // 2. Convert the "amount" string into a number.
-  const amount = parseFloat(data.amount);
-
-  // 3. Check if the amount is invalid (NaN) or less than/equal to zero.
-  if (isNaN(amount) || amount <= 0) {
-    validationErrors.amount = 'Amount must be a positive number';
-  }
-
-  // 4. Check if a category was not selected.
-  if (!data.category) {
-    validationErrors.category = 'Category is required';
-  }
-
-  // 5. Check if a date was not provided.
-  if (!data.date) {
-    validationErrors.date = 'Date is required';
-  }
-
-  // 6. Return:
-  //    - isValid: true if no errors were added, false otherwise
-  //    - errors: the object containing any validation messages
-  return {
-    isValid: Object.keys(validationErrors).length === 0,
-    errors: validationErrors
-  };
-};
-
-
+  /**
+   * Handles input changes for all form fields using computed property names
+   * @param {React.ChangeEvent<HTMLInputElement | HTMLSelectElement>} e - Change event from form inputs
+   */
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ): void => {
-    // Destructure the "name" and "value" from the input or select element
     const { name, value } = e.target;
-  
-    // 1. Update the form data state
     setFormData(prev => ({
-      ...prev,        // keep all previous fields the same
-      [name]: value   // update just the field that changed
+      ...prev,
+      [name]: value
     }));
-  
-    // 2. Clear error for this field (if it exists)
-    // "errors" is an object like { description?: string, amount?: string, ... }
-    // "name" comes from the input, but TypeScript only knows it's a string.
-    // "name as keyof FormErrors" tells TypeScript: "trust me, this matches a key in FormErrors".
+
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({
-        ...prev,          // keep all existing errors
-        [name]: undefined // clear error message for the changed field
+        ...prev,
+        [name] : undefined
       }));
     }
   };
 
-
+  /**
+   * Handles form submission with validation and data processing
+   * @param {React.FormEvent<HTMLFormElement>} e - Form submission event
+   */
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    
-    /// UPDATED: Run the centralized validation function on the form data.
-    // This checks each field (description, amount, category, date) 
-    // and returns an object with `isValid` (true/false) and `errors` (field-specific error messages).
+
     const validation = validateExpenseForm(formData);
-    
-    // UPDATED: If the form is invalid...
-    if (!validation.isValid) {
-      // ...store the error messages in React state.
-      // Each field can then display its own error message in the UI.
-      // Example: errors.amount = "Amount must be a positive number"
+
+    if(!validation.isValid) {
       setErrors(validation.errors);
-      return; // stop submission
+      return;
     }
-    
-    // UPDATED: If the form passed validation, clear out any old errors
-    // so the UI no longer shows them.
-    setErrors({});
-    
-    // UPDATED: Now that the data is guaranteed valid, safely submit it.
-    // - `description.trim()` removes extra whitespace
-    // - `parseFloat(formData.amount)` ensures amount is a number
+
+    setErrors({})
+
+    // Submit processed data
     onSubmit({
       description: formData.description.trim(),
       amount: parseFloat(formData.amount),
       category: formData.category,
       date: formData.date
     });
-    
-    // Reset form back to its initial state so the user has a clean slate.
-    // - Clear description/amount
-    // - Reset category to default ("Food")
-    // - Reset date to today (formatted as YYYY-MM-DD)
+
+    // Reset form after successful submission
     setFormData({
       description: '',
       amount: '',
@@ -147,12 +121,13 @@ const validateExpenseForm = (
   };
 
   return (
-    <form className="expense-form" onSubmit={handleSubmit}>
-      <h3>Add New Expense</h3>
+    <form className="bg-white rounded-lg p-6 mb-8 shadow-sm border border-gray-200" onSubmit={handleSubmit}>
+      <h3 className="text-lg font-semibold text-gray-900 mb-5">Add New Expense</h3>
       
-      <div className="form-group">
-        <label htmlFor="description">Description *</label>
-       
+      <div className="mb-4">
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1.5">
+          Description *
+        </label>
         <input
           type="text"
           id="description"
@@ -160,14 +135,28 @@ const validateExpenseForm = (
           value={formData.description}
           onChange={handleInputChange}
           placeholder="What did you spend money on?"
-          className={errors.description ? 'error' : ''}
+          className={`
+            w-full px-3 py-2.5 
+            border rounded-md
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+            placeholder-gray-400 text-sm bg-white
+            transition-colors duration-200
+            ${errors.description 
+              ? 'border-red-300 focus:ring-red-500' 
+              : 'border-gray-300'
+            }
+          `}
         />
-        {errors.description && <span className="form-error">{errors.description}</span>}
+        {errors.description && (
+          <span className="text-red-500 text-xs mt-1 block">{errors.description}</span>
+        )}
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="amount">Amount *</label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Amount *
+          </label>
           <input
             type="number"
             id="amount"
@@ -177,43 +166,93 @@ const validateExpenseForm = (
             placeholder="0.00"
             step="0.01"
             min="0"
-            className={errors.amount ? 'error' : ''}
+            className={`
+              w-full px-3 py-2.5 
+              border rounded-md
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              placeholder-gray-400 text-sm bg-white
+              transition-colors duration-200
+              ${errors.amount 
+                ? 'border-red-300 focus:ring-red-500' 
+                : 'border-gray-300'
+              }
+            `}
           />
-          {errors.amount && <span className="form-error">{errors.amount}</span>}
+          {errors.amount && (
+            <span className="text-red-500 text-xs mt-1 block">{errors.amount}</span>
+          )}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="category">Category</label>
+        <div>
+          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Category
+          </label>
           <select
             id="category"
             name="category"
             value={formData.category}
             onChange={handleInputChange}
-            className={errors.category ? 'error' : ''}
+            className={`
+              w-full px-3 py-2.5 
+              border rounded-md
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              text-sm bg-white cursor-pointer
+              transition-colors duration-200
+              ${errors.category 
+                ? 'border-red-300 focus:ring-red-500' 
+                : 'border-gray-300'
+              }
+            `}
           >
             <option value="Food">Food</option>
             <option value="Transportation">Transportation</option>
             <option value="Entertainment">Entertainment</option>
+            <option value="Shopping">Shopping</option>
             <option value="Other">Other</option>
           </select>
-          {errors.category && <span className="form-error">{errors.category}</span>}
+          {errors.category && (
+            <span className="text-red-500 text-xs mt-1 block">{errors.category}</span>
+          )}
         </div>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="date">Date</label>
+      <div className="mb-6">
+        <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1.5">
+          Date
+        </label>
         <input
           type="date"
           id="date"
           name="date"
           value={formData.date}
           onChange={handleInputChange}
-          className={errors.date ? 'error' : ''}
+          className={`
+            w-full px-3 py-2.5 
+            border rounded-md
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+            text-sm bg-white
+            transition-colors duration-200
+            ${errors.date 
+              ? 'border-red-300 focus:ring-red-500' 
+              : 'border-gray-300'
+            }
+          `}
         />
-        {errors.date && <span className="form-error">{errors.date}</span>}
+        {errors.date && (
+          <span className="text-red-500 text-xs mt-1 block">{errors.date}</span>
+        )}
       </div>
 
-      <button type="submit" className="submit-button">
+      <button 
+        type="submit" 
+        className="
+          w-full bg-blue-500 hover:bg-blue-600 
+          text-white font-medium py-3 px-4 
+          rounded-md transition-colors duration-200
+          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+          disabled:opacity-50 disabled:cursor-not-allowed
+        "
+      >
         Add Expense
       </button>
     </form>
